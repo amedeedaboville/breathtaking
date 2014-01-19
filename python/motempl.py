@@ -25,7 +25,7 @@ if __name__ == '__main__':
 
     cv2.namedWindow('motempl')
     visuals = ['input', 'frame_diff', 'motion_hist', 'grad_orient']
-    cv2.createTrackbar('visual', 'motempl', 2, len(visuals)-1, nothing)
+    cv2.createTrackbar('visual', 'motempl', 3, len(visuals)-1, nothing)
     cv2.createTrackbar('threshold', 'motempl', DEFAULT_THRESHOLD, 255, nothing)
 
     cam = video.create_capture(video_src, fallback='synth:class=chess:bg=../cpp/lena.jpg:noise=0.01')
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         mg_mask, mg_orient = cv2.calcMotionGradient( motion_history, MAX_TIME_DELTA, MIN_TIME_DELTA, apertureSize=5 )
         seg_mask, seg_bounds = cv2.segmentMotion(motion_history, timestamp, MAX_TIME_DELTA)
 
-        visual_name = visuals[cv2.getTrackbarPos('visual', 'motempl')]
+        visual_name = 2
         if visual_name == 'input':
             vis = frame.copy()
         elif visual_name == 'frame_diff':
