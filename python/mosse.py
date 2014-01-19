@@ -146,9 +146,12 @@ class Temple:
         self.h , self.w = frame.shape[:2]
         self.prev_frame = frame.copy()
         self.motion_history = np.zeros((self.h, self.w), np.float32)
+        self.real_diff = None
 
     def update(self, frame):
         frame_diff = cv2.absdiff(frame, self.prev_frame)
+        real_diff = frame - self.prev_frame
+        self.real_diff = cv2.cvtColor(real_diff,  cv2.COLOR_BGR2GRAY)
         gray_diff = cv2.cvtColor(frame_diff, cv2.COLOR_BGR2GRAY)
         thrs = 40 #cv2.getTrackbarPos('threshold', 'motempl')
         ret, motion_mask = cv2.threshold(gray_diff, thrs, 1, cv2.THRESH_BINARY)
@@ -216,6 +219,8 @@ class App:
                       y_offset= int(h/2)
                       x_offset= int(w/2)
                       final[y-y_offset:y+y_offset, x-x_offset:x+x_offset] = self.temple.vis[y-y_offset:y+y_offset, x-x_offset:x+x_offset]
+                      sumDiff = cv2.sumElems(self.temple.real_diff[y-y_offset:y+y_offset, x-x_offset:x+x_offset])[0]
+                      print clock(), sumDiff/(w*h+1)
                     #cv2.imshow('frame',final)
                     self.frame = final.copy()
                 self.rect_sel.draw(self.frame)
