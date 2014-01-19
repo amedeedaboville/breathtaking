@@ -20,8 +20,9 @@ Keys:
 [1] David S. Bolme et al. "Visual Object Tracking using Adaptive Correlation Filters"
     http://www.cs.colostate.edu/~bolme/publications/Bolme2010Tracking.pdf
 '''
-
+import pylab
 import numpy as np
+from numpy import fft
 import cv2
 from common import draw_str, RectSelector, clock
 import video
@@ -87,10 +88,6 @@ class App:
         self.roiw = w/3.0
         self.roih = h/3.0
         self.roix, self.roiy = (w/2.0, h - self.roih/2.0)
-        print "roix is" + str(self.roix)
-        print "roiy is" + str(self.roiy)
-        print "roiw is" + str(self.roiw)
-        print "roih is" + str(self.roih)
 
         self.trackers = []
         self.paused = paused
@@ -155,23 +152,22 @@ class App:
 
                     self.frame = final.copy()
                     if reading_no == NUM_MEASURES-1: #When we've read a whole array in, flush it to a graph
-                      t = scipy.linspace(filtered[0][0],0.1995,filtered[0][NUM_MEASURES-1])
+                      t = np.linspace(self.filtered[0][0],0.1995,self.filtered[0][NUM_MEASURES-1])
 
-                      FFT = abs(scipy.fft(self.readings))
-                      freqs = scipy.fftpack.fftfreq(readings.size, 0.1995)
+                      DFT = abs(fft.rfft(self.readings))
+                      freqs = fft.rfftfreq(self.readings.size, 0.1995)
 
-                      pylab.subplot(211)
+                      plt.subplot(211)
                       plt.plot(self.filtered[0], self.filtered[1])
-                      pylab.subplot(212)
-                      pylab.plot(freqs,20*scipy.log10(FFT),'x')
-                      pylab.show()
+                      plt.subplot(212)
+                      plt.plot(freqs,20*np.log10(DFT),'x')
                       print "Saving pic.png"
-                      plt.clf()
                       #plt.plot(self.filtered[0], self.filtered[1])
                       plt.xlabel('time (s)')
                       plt.ylabel('Movement')
                       #grid(True)
                       plt.savefig("pic.png")
+                      plt.clf()
                 cv2.imshow('frame', self.frame)
 
 
