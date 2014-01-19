@@ -1,0 +1,17 @@
+<head>
+	<meta charset="utf-8">
+	<title>Watch your breath</title>
+	
+</head>
+
+<body>
+  <div class="container">
+    {{> hello}}
+    <video id="webcam" autoplay width="640" height="480" style="display:none"></video>
+    <canvas id="blended" width="640" height="480"></canvas>
+  </div>
+</body>
+
+<template name="hello">
+<h1>Watch your breath</h1>
+</template>
