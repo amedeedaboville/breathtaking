@@ -32,7 +32,9 @@ MHI_DURATION = 0.5
 DEFAULT_THRESHOLD = 32
 MAX_TIME_DELTA = 0.25
 MIN_TIME_DELTA = 0.05
-NUM_MEASURES = 50
+NUM_MEASURES = 100
+MA = 30
+RECENT_MA = 10
 
 def rnd_warp(a):
     h, w = a.shape[:2]
@@ -196,7 +198,14 @@ class App:
         self.paused = paused
         self.temple = None
         self.frames_read  = 0
-        self.readings = np.zeros((2, NUM_MEASURES))
+
+        self.filtered = np.zeros((2, NUM_MEASURES))
+
+        self.readings = np.zeros(MA)
+        self.sum_readings = 0
+
+        self.recent_readings = np.zeros(RECENT_MA)
+        self.recent_sum = 0
 
     def onrect(self, rect):
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -228,14 +237,31 @@ class App:
                       x_offset= int(w/2)
                       final[y-y_offset:y+y_offset, x-x_offset:x+x_offset] = self.temple.vis[y-y_offset:y+y_offset, x-x_offset:x+x_offset]
                       sumDiff = cv2.sumElems(self.temple.real_diff[y-y_offset:y+y_offset, x-x_offset:x+x_offset])[0]
-                      self.readings[0][reading_no] = clock()
-                      self.readings[1][reading_no] = sumDiff/(w*h + 1) #Average motion over the area. + 1 to fight div by 0
-                    #cv2.imshow('frame',final)
+
+                      reading = sumDiff/(w*h+1)
+
+                      # For 'speed' we just subtract the value we're overwriting and then add the new one. The others don't change:
+
+                      #Moving average:
+                      ma_no = self.frames_read % MA
+                      self.sum_readings = self.sum_readings - self.readings[ma_no] + reading
+                      self.readings[ma_no] = reading
+
+                      
+                      #short ma
+                      recent_ma_no = self.frames_read % RECENT_MA
+                      self.recent_sum = self.recent_sum - self.recent_readings[recent_ma_no] + reading
+                      self.recent_readings[recent_ma_no] = reading
+
+                      #print self.readings
+                      self.filtered[0][reading_no] = clock()
+                      self.filtered[1][reading_no] = self.recent_sum/RECENT_MA - self.sum_readings/MA #Remove long term noise
+
                     self.frame = final.copy()
                     if reading_no == NUM_MEASURES-1: #When we've read a whole array in, flush it to a graph
                       print "Saving pic.png"
                       plt.clf()
-                      plt.plot(self.readings[0], self.readings[1])
+                      plt.plot(self.filtered[0], self.filtered[1])
                       plt.xlabel('time (s)')
                       plt.ylabel('Chest Movement')
                       #grid(True)
