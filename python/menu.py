@@ -42,7 +42,7 @@ class Timer(NSObject):
     self.statusitem.setMenu_(self.menu)
 
     # Get the timer going
-    self.timer = NSTimer.alloc().initWithFireDate_interval_target_selector_userInfo_repeats_(start_time, 5.0, self, 'tick:', None, True)
+    self.timer = NSTimer.alloc().initWithFireDate_interval_target_selector_userInfo_repeats_(start_time, 10.0, self, 'tick:', None, True)
     NSRunLoop.currentRunLoop().addTimer_forMode_(self.timer, NSDefaultRunLoopMode)
     self.timer.fire()
 
@@ -56,6 +56,14 @@ class Timer(NSObject):
       self.state = 'working'
     self.statusitem.setImage_(self.images[self.state])
     #dealloc(self.graph) #not needed I think
+    f = open('number.txt','r')
+    try:
+      t = f.readline()
+      if t:
+        x = int(float(t))
+        self.statusitem.setTitle_(str(x))
+    except:
+      pass
     self.graph = NSImage.alloc().initByReferencingFile_('pic.png')
     self.menuitem.setImage_(self.graph)
 

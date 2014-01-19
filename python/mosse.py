@@ -152,23 +152,41 @@ class App:
 
                     self.frame = final.copy()
                     if reading_no == NUM_MEASURES-1: #When we've read a whole array in, flush it to a graph
-                      t = np.linspace(self.filtered[0][0],0.1995,self.filtered[0][NUM_MEASURES-1])
-
-                      DFT = abs(fft.rfft(self.readings))
-                      freqs = fft.rfftfreq(self.readings.size, 0.1995)
+                      DFT = abs(fft.rfft(self.readings)) #Assume a more or less equal sample rate (which is not the case, there are gc pauses/whatever)
+                      freqs = fft.rfftfreq(self.readings.size, self.readings[1]-self.readings[0])
 
                       plt.subplot(211)
                       plt.plot(self.filtered[0], self.filtered[1])
-                      plt.subplot(212)
-                      plt.plot(freqs,20*np.log10(DFT),'x')
-                      print "Saving pic.png"
-                      #plt.plot(self.filtered[0], self.filtered[1])
                       plt.xlabel('time (s)')
                       plt.ylabel('Movement')
-                      #grid(True)
+                      plt.subplot(212)
+                      plt.plot(freqs,10*np.log10(DFT))
+                      plt.ylabel('Power')
+                      plt.xlabel('Frequency (Hz)')
+                      print "Saving pic.png"
+
                       plt.savefig("pic.png")
                       plt.clf()
+                      max = None
+                      for m in range(freqs.size):
+                        if freqs[m] > 0.01 and freqs[m] < 0.06:
+                          if max == None:
+                            max = m
+                          else:
+                            if freqs[m] > freqs[max]:
+                              max = m
+                      if max is not None:
+                        print "max is number " + str(max) + " with rate " + str(freqs[max]* 60) + " per minute"
+                        numba = freqs[max]*60
+                        if numba < 5:
+                          numba = 5
+                        if numba > 30:
+                          numba = 30
+                        f = open('number.txt', 'w+')
+                        f.write(str(numba))
+                        f.close()
                 cv2.imshow('frame', self.frame)
+
 
 
             ch = cv2.waitKey(10)
