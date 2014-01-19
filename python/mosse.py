@@ -25,11 +25,14 @@ import numpy as np
 import cv2
 from common import draw_str, RectSelector, clock
 import video
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 MHI_DURATION = 0.5
 DEFAULT_THRESHOLD = 32
 MAX_TIME_DELTA = 0.25
 MIN_TIME_DELTA = 0.05
+NUM_MEASURES = 50
 
 def rnd_warp(a):
     h, w = a.shape[:2]
@@ -192,6 +195,8 @@ class App:
         self.trackers = []
         self.paused = paused
         self.temple = None
+        self.frames_read  = 0
+        self.readings = np.zeros((2, NUM_MEASURES))
 
     def onrect(self, rect):
         frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -204,12 +209,15 @@ class App:
         while True:
             if not self.paused:
                 ret, self.frame = self.cap.read()
+                self.frames_read = self.frames_read + 1
                 if not ret:
                     break
                 frame_gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 
                 if self.trackers and self.temple:
                     final = self.frame.copy()
+                    reading_no = self.frames_read % NUM_MEASURES
+                    #print "Reading number " + str(reading_no)
                     self.temple.update(self.frame)
                     #cv2.imshow('frame', self.trackers[0].pos)
                     for tracker in self.trackers:
@@ -220,9 +228,18 @@ class App:
                       x_offset= int(w/2)
                       final[y-y_offset:y+y_offset, x-x_offset:x+x_offset] = self.temple.vis[y-y_offset:y+y_offset, x-x_offset:x+x_offset]
                       sumDiff = cv2.sumElems(self.temple.real_diff[y-y_offset:y+y_offset, x-x_offset:x+x_offset])[0]
-                      print clock(), sumDiff/(w*h+1)
+                      self.readings[0][reading_no] = clock()
+                      self.readings[1][reading_no] = sumDiff/(w*h + 1) #Average motion over the area. + 1 to fight div by 0
                     #cv2.imshow('frame',final)
                     self.frame = final.copy()
+                    if reading_no == NUM_MEASURES-1: #When we've read a whole array in, flush it to a graph
+                      print "Saving pic.png"
+                      plt.clf()
+                      plt.plot(self.readings[0], self.readings[1])
+                      plt.xlabel('time (s)')
+                      plt.ylabel('Chest Movement')
+                      #grid(True)
+                      plt.savefig("pic.png")
                 self.rect_sel.draw(self.frame)
                 cv2.imshow('frame', self.frame)
 
