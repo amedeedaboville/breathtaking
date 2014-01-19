@@ -30,15 +30,6 @@ class Timer(NSObject):
 
     self.menu = NSMenu.alloc().init() # Build a very simple menu
 
-    menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Sync...', 'sync:', '')
-
-    # Sync event is bound to sync_ method
-    self.menu.addItem_(menuitem)
-
-    # Default event
-    menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'terminate:', '')
-    self.menu.addItem_(menuitem)
-
     #Let's try with a pic
     #menuitem = NSMenuItem.alloc().init()
     self.menuitem = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_('Quit', 'terminate:', '')
